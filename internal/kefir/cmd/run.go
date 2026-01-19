@@ -19,6 +19,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"kefir/internal/kefir/run"
+	"kefir/internal/my_ctx"
+	"kefir/pkg/kube_client"
 )
 
 // runCmd represents the run command
@@ -37,35 +39,29 @@ var runCmd = &cobra.Command{
 
 		return run.RunFunc(cmd, args)
 	},
-	ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, podToComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) != 0 {
 			// Мы ждем только один аргумент, для остальных дополнение не нужно
 			return nil, cobra.ShellCompDirectiveNoFileComp
 		}
 
-		// 1. Получаем текущий namespace из флага
 		ns, _ := cmd.Flags().GetString("namespace")
 
-		// 2. Логика получения списка подов (замените на реальный вызов API)
-		pods := fetchPodsFromK8s(ns)
+		ctx := my_ctx.CtxWithOsSignal()
 
-		// 3. Возвращаем список и директиву (запрещаем предлагать файлы)
-		return pods, cobra.ShellCompDirectiveNoFileComp
+		pns, _ := kube_client.FetchPodNamesFromK8s(ctx, ns, podToComplete)
+		// if err != nil {
+		// 	return pns, cobra.ShellCompDirectiveNoFileComp
+		// }
+
+		return pns, cobra.ShellCompDirectiveNoFileComp
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
 
-	runCmd.PersistentFlags().StringP("n", "namespace", "", "If present, the namespace scope for this CLI request")
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// runCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// runCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	runCmd.PersistentFlags().StringP("namespace", "n", "", "If present, the namespace scope for this CLI request")
+	runCmd.PersistentFlags().StringP("container-name", "N", "", "Имя создаваемого эфемерного контейнера. если пропущено - рандомное значение")
+	runCmd.PersistentFlags().BoolP("noop", "", false, "Do not run commands, only print kubectl commands")
 }
