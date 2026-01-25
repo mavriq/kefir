@@ -24,9 +24,10 @@ const (
 	GetOrSelectContainerErrorCancelled    = "container selection cancelled"
 	GetOrSelectContainerErrorNoContainers = "no containers available in pod"
 
-	// Специальная опция "ничего не выбирать"
-	GetOrSelectContainerOptionNone       = "- none -"
 	GetOrSelectContainerOptionInitPrefix = "[init] "
+	// Специальная опция "ничего не выбирать"
+	GetOrSelectContainerOptionNone     = "- none -"
+	GetOrSelectContainerOptionNoneDesc = "do not connect to any container PID NS"
 )
 
 // Константы для SelectMounts

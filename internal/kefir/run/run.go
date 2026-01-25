@@ -49,7 +49,6 @@ func RunFunc(cmd *cobra.Command, args []string) (err error) {
 
 	allMountOptions = GetAllMountOptions(selectedPod.Spec.Volumes, allContainers)
 
-	// if selectedMountOptions, err = SelectMounts(ctx, convertSlice[*MountOptionImpl, ui.MountOption](allMountOptions)); err != nil {
 	if selectedMountOptions, err = SelectMounts(ctx, allMountOptions); err != nil {
 		return err
 	}

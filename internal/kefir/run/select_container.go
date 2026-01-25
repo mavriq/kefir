@@ -5,8 +5,6 @@ import (
 	"fmt"
 
 	"kefir/pkg/ui"
-
-	corev1 "k8s.io/api/core/v1"
 )
 
 // SelectContainerWithInfo возвращает полную информацию о выбранном контейнере
@@ -34,7 +32,7 @@ func SelectContainerWithInfo(ctx context.Context, allSelections []ContainerSelec
 	for i, selection := range selectionsWithNone {
 		if i == 0 {
 			// Опция "none"
-			items[i] = &corev1.Container{Name: GetOrSelectContainerOptionNone}
+			items[i] = GetOrSelectContainerOptionNoneDesc
 			names[i] = GetOrSelectContainerOptionNone
 		} else {
 			// Контейнеры
@@ -80,42 +78,3 @@ func SelectContainerWithInfo(ctx context.Context, allSelections []ContainerSelec
 	selected := selectionsWithNone[idx]
 	return &selected, nil
 }
-
-// // Пример использования:
-// func exampleUsage(ctx context.Context, pod *corev1.Pod) error {
-// 	// Простой выбор контейнера
-// 	container, err := selectContainer(ctx, pod)
-// 	if err != nil {
-// 		if err.Error() == GetOrSelectContainerErrorCancelled {
-// 			fmt.Println("User cancelled container selection")
-// 			return nil
-// 		}
-// 		return fmt.Errorf("failed to select container: %w", err)
-// 	}
-
-// 	if container == nil {
-// 		fmt.Println("User selected 'none'")
-// 		return nil
-// 	}
-
-// 	fmt.Printf("Selected container: %s\n", container.Name)
-
-// 	// Выбор с полной информацией
-// 	selection, err := SelectContainerWithInfo(ctx, pod)
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	if selection.Container == nil {
-// 		fmt.Println("No container selected")
-// 	} else {
-// 		containerType := "container"
-// 		if selection.IsInit {
-// 			containerType = "init-container"
-// 		}
-// 		fmt.Printf("Selected %s '%s' (index: %d)\n",
-// 			containerType, selection.Container.Name, selection.Index)
-// 	}
-
-// 	return nil
-// }

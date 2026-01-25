@@ -45,8 +45,9 @@ func (m mountOptionDescription) String() string {
 	if len(m.MountedTo) > 0 {
 		b.WriteString("mountedTo:\n")
 		for _, mt := range m.MountedTo {
-			fmt.Fprintf(b, "  - %w\n", &mt)
+			fmt.Fprintf(b, "  - %v\n", &mt)
 		}
+		fmt.Fprintln(b, "")
 	}
 	bb, _ := yaml.Marshal(m.VolumeSource)
 
@@ -71,7 +72,7 @@ func (m *MountOptionImpl) Title() string {
 	}
 
 	mountPath := "[DO NOT MOUNT]"
-	if m.MountPath == "" {
+	if m.MountPath != "" {
 		mountPath = m.MountPath
 	}
 
@@ -117,10 +118,12 @@ var _ ui.MountOption = &MountOptionImpl{}
 // список имплементаций ui.MountOption
 // список всех контейнеров нужен для более детальной информации в description
 func GetAllMountOptions(volumes []corev1.Volume, allContainers []ContainerSelection) []ui.MountOption {
+	ln := len(volumes)
+	mountOptions := make([]ui.MountOption, ln)
 
-	// volumes := make(ui.MountOption, 0, len(volumes))
-	// mountOptions := make([]*MountOptionImpl, 0, len(volumes))
-	mountOptions := make([]ui.MountOption, 0, len(volumes))
+	if ln == 0 {
+		return mountOptions
+	}
 
 	for i, sv := range volumes {
 		description := mountOptionDescription{VolumeSource: sv.VolumeSource}
@@ -140,12 +143,13 @@ func GetAllMountOptions(volumes []corev1.Volume, allContainers []ContainerSelect
 			}
 		}
 
-		mountOptions[i] = &MountOptionImpl{
+		mo := MountOptionImpl{
 			Name:        sv.Name,
 			MountPath:   "/run/volumes/" + sv.Name,
 			ReadOnly:    true,
 			description: description,
 		}
+		mountOptions[i] = &mo
 	}
 
 	return mountOptions

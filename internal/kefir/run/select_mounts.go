@@ -8,17 +8,10 @@ import (
 )
 
 // SelectMounts - выбор монтируемых ui.MountOption-объектов
-// func SelectMounts(ctx context.Context, mountOptions []*MountOptionImpl) ([]*MountOptionImpl, error) {
 func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.MountOption, error) {
 	if len(mountOptions) == 0 {
 		return mountOptions, nil
 	}
-
-	// // Конвертируем в интерфейс ui.MountOption
-	// options := make([]ui.MountOption, len(mountOptions))
-	// for i, opt := range mountOptions {
-	// 	options[i] = opt
-	// }
 
 	// Создаем handler для правой панели (форма редактирования)
 	handler := ui.NewMountOptionsHandler(mountOptions)
