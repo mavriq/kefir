@@ -31,14 +31,15 @@ var runCmd = &cobra.Command{
 Настроить детали, и Запустить эфемерный контейнер
 `,
 	Args: cobra.ExactArgs(1),
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if err = initConfig(); err != nil {
+	RunE: run.RunFunc,
+	// RunE: func(cmd *cobra.Command, args []string) (err error) {
+	// 	if err = initConfig(); err != nil {
 
-			return err
-		}
+	// 		return err
+	// 	}
 
-		return run.RunFunc(cmd, args)
-	},
+	// 	return run.RunFunc(cmd, args)
+	// },
 	ValidArgsFunction: func(cmd *cobra.Command, args []string, podToComplete string) ([]string, cobra.ShellCompDirective) {
 		if len(args) != 0 {
 			// Мы ждем только один аргумент, для остальных дополнение не нужно

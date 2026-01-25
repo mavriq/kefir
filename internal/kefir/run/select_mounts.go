@@ -8,23 +8,24 @@ import (
 )
 
 // SelectMounts - выбор монтируемых ui.MountOption-объектов
-func SelectMounts(ctx context.Context, mountOptions []*MountOptionImpl) ([]*MountOptionImpl, error) {
+// func SelectMounts(ctx context.Context, mountOptions []*MountOptionImpl) ([]*MountOptionImpl, error) {
+func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.MountOption, error) {
 	if len(mountOptions) == 0 {
 		return mountOptions, nil
 	}
 
-	// Конвертируем в интерфейс ui.MountOption
-	options := make([]ui.MountOption, len(mountOptions))
-	for i, opt := range mountOptions {
-		options[i] = opt
-	}
+	// // Конвертируем в интерфейс ui.MountOption
+	// options := make([]ui.MountOption, len(mountOptions))
+	// for i, opt := range mountOptions {
+	// 	options[i] = opt
+	// }
 
 	// Создаем handler для правой панели (форма редактирования)
-	handler := ui.NewMountOptionsHandler(options)
+	handler := ui.NewMountOptionsHandler(mountOptions)
 
 	// Создаем имена для левой панели
-	names := make([]string, len(options))
-	for i, opt := range options {
+	names := make([]string, len(mountOptions))
+	for i, opt := range mountOptions {
 		names[i] = opt.Title()
 	}
 
@@ -38,7 +39,7 @@ func SelectMounts(ctx context.Context, mountOptions []*MountOptionImpl) ([]*Moun
 
 	// Создаем и запускаем окно
 	window := ui.NewTwoPanelWindow(config, names, handler)
-	result, err := window.Run(ctx)
+	_, err := window.Run(ctx)
 	if err != nil {
 		if err.Error() == "selection cancelled" {
 			// Для SelectMounts это нормальный выход
@@ -51,4 +52,5 @@ func SelectMounts(ctx context.Context, mountOptions []*MountOptionImpl) ([]*Moun
 	// Но поскольку мы работали с оригинальными объектами,
 	// они уже модифицированы, просто возвращаем исходный слайс
 	return mountOptions, nil
+	// return result, nil
 }

@@ -22,11 +22,18 @@ type TwoPanelWindow struct {
 
 	// Для checkbox режима (ConfigureMounts)
 	selectedIndices map[int]bool
+
+	// Оригинальные тексты элементов
+	originalTexts []string
 }
 
 // NewTwoPanelWindow создает новое двухпанельное окно
 func NewTwoPanelWindow(config WindowConfig, items []string, handler RightPanelHandler) *TwoPanelWindow {
 	app := tview.NewApplication()
+
+	// Сохраняем оригинальные тексты
+	originalTexts := make([]string, len(items))
+	copy(originalTexts, items)
 
 	// Создаем левую панель
 	leftList, leftFrame := CreateListPanel("Items", config.EnableCheckbox)
@@ -59,6 +66,7 @@ func NewTwoPanelWindow(config WindowConfig, items []string, handler RightPanelHa
 		resultChan:      make(chan interface{}, 1),
 		errorChan:       make(chan error, 1),
 		selectedIndices: make(map[int]bool),
+		originalTexts:   originalTexts,
 	}
 
 	// Настраиваем обработчики
@@ -119,25 +127,20 @@ func (w *TwoPanelWindow) setupHandlers() {
 
 		return event
 	})
-
-	// Обработчик изменения фокуса
-	w.app.SetFocusChangedFunc(func(previous, current tview.Primitive) {
-		if current == w.leftList {
-			w.leftFrame.SetBorderColor(ColorActive)
-			w.rightFrame.SetBorderColor(ColorBorderDim)
-		} else {
-			w.leftFrame.SetBorderColor(ColorBorderDim)
-			w.rightFrame.SetBorderColor(ColorActive)
-		}
-	})
 }
 
 func (w *TwoPanelWindow) switchFocus() {
 	currentFocus := w.app.GetFocus()
 	if currentFocus == w.leftList {
+		// Переключаемся на правую панель
 		w.app.SetFocus(w.rightPanel)
+		w.leftFrame.SetBorderColor(ColorBorderDim)
+		w.rightFrame.SetBorderColor(ColorActive)
 	} else {
+		// Переключаемся на левую панель
 		w.app.SetFocus(w.leftList)
+		w.leftFrame.SetBorderColor(ColorActive)
+		w.rightFrame.SetBorderColor(ColorBorderDim)
 	}
 }
 
@@ -165,12 +168,10 @@ func (w *TwoPanelWindow) toggleSelection(index int) {
 }
 
 func (w *TwoPanelWindow) getOriginalItemText(index int) string {
-	mainText, _ := w.leftList.GetItemText(index)
-	// Убираем префикс checkbox
-	if len(mainText) > 2 && (mainText[0] == '□' || mainText[0] == '✓') {
-		return mainText[2:]
+	if index < 0 || index >= len(w.originalTexts) {
+		return ""
 	}
-	return mainText
+	return w.originalTexts[index]
 }
 
 func (w *TwoPanelWindow) cancelSelection() {
@@ -179,7 +180,7 @@ func (w *TwoPanelWindow) cancelSelection() {
 		w.resultChan <- w.rightHandler.GetResult()
 	} else {
 		// Для окон выбора возвращаем ошибку отмены
-		w.errorChan <- fmt.Errorf("selection cancelled")
+		w.errorChan <- fmt.Errorf(ErrorSelectionCancelled)
 	}
 	w.app.Stop()
 }
@@ -188,8 +189,8 @@ func (w *TwoPanelWindow) cancelSelection() {
 func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 	// Создаем layout
 	panelsFlex := tview.NewFlex().
-		AddItem(w.leftFrame, 0, 1, true).
-		AddItem(w.rightFrame, 0, 2, false)
+		AddItem(w.leftFrame, 0, 1, true).  // Левая панель, изначально в фокусе
+		AddItem(w.rightFrame, 0, 2, false) // Правая панель
 
 	// Создаем заголовок и инструкции
 	titleView := CreateTitle(w.config.Title)
@@ -197,14 +198,15 @@ func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 
 	mainFlex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
-		AddItem(titleView, 1, 0, false).
-		AddItem(panelsFlex, 0, 1, true).
-		AddItem(instructionsView, 1, 0, false)
+		AddItem(titleView, 1, 0, false).       // Заголовок
+		AddItem(panelsFlex, 0, 1, true).       // Основное содержимое
+		AddItem(instructionsView, 1, 0, false) // Подвал
 
 	// Настраиваем цвета
-	w.app.SetBackgroundColor(ColorBackground)
-	w.leftFrame.SetBorderColor(ColorActive)
-	w.rightFrame.SetBorderColor(ColorBorderDim)
+	// w.app.SetBackgroundColor(ColorBackground)
+	mainFlex.SetBackgroundColor(ColorBackground)
+	w.leftFrame.SetBorderColor(ColorActive)     // Левая панель активна изначально
+	w.rightFrame.SetBorderColor(ColorBorderDim) // Правая панель неактивна
 
 	// Запускаем в горутине
 	go func() {
@@ -222,7 +224,7 @@ func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 	select {
 	case <-ctx.Done():
 		w.app.Stop()
-		return nil, fmt.Errorf("operation cancelled: %w", ctx.Err())
+		return nil, fmt.Errorf("%s: %w", ErrorUICancelled, ctx.Err())
 
 	case result := <-w.resultChan:
 		return result, nil

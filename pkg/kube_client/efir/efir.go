@@ -8,7 +8,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/docker/distribution/reference"
+	"github.com/containers/image/v5/docker/reference"
+	corev1 "k8s.io/api/core/v1"
 )
 
 type Efir struct {
@@ -20,18 +21,18 @@ type Efir struct {
 	selectedMountOptions []ui.MountOption
 }
 
-func New(imageName, ns, podName, ephyContainerName, string,
+func New(imageName, ns, podName, ephyContainerName string,
 	targetContainer *corev1.Container,
 	selectedMountOptions []ui.MountOption,
-) (e *efir, err error) {
+) (e *Efir, err error) {
 	if ephyContainerName == "" {
 		ref, err := reference.ParseNormalizedNamed(imageName)
 
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		pathSlice := string.Split(reference.Path(ref), "/")
+		pathSlice := strings.Split(reference.Path(ref), "/")
 		ephyContainerName = addSuffix(pathSlice[len(pathSlice)-1])
 	}
 
@@ -42,12 +43,12 @@ func New(imageName, ns, podName, ephyContainerName, string,
 		ephyContainerName: ephyContainerName,
 		selectedMountOptions: slices.DeleteFunc(
 			selectedMountOptions, func(m ui.MountOption) bool {
-				return m.MountPath != ""
+				return m.GetMountPath() != ""
 			}),
 	}
 
 	if targetContainer != nil {
-		e.targetContainerName.Name
+		e.targetContainerName = targetContainer.Name
 	}
 
 	return e, nil
@@ -69,6 +70,8 @@ func (e *Efir) Noop(ctx context.Context) (err error) {
 	}
 
 	fmt.Printf(strings.Join(cmd1, " "))
+
+	return nil
 }
 
 func (p *Efir) Exec(ctx context.Context) (err error) {

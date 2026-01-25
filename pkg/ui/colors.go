@@ -19,13 +19,13 @@ const (
 
 // Цвета для YAML подсветки
 const (
-	YAMLColorKey        = tcell.ColorGreen
-	YAMLColorApiVersion = tcell.ColorYellow
-	YAMLColorKind       = tcell.ColorYellow
-	YAMLColorMetadata   = tcell.ColorAqua
-	YAMLColorSpec       = tcell.ColorPurple
-	YAMLColorStatus     = tcell.ColorRed
-	YAMLColorString     = tcell.ColorYellow
-	YAMLColorNumber     = tcell.ColorCyan
-	YAMLColorBoolean    = tcell.ColorMagenta
+	YAMLColorKey        = tcell.ColorGreen   // Зелёный - для ключей
+	YAMLColorApiVersion = tcell.ColorYellow  // Жёлтый - для apiVersion/kind
+	YAMLColorKind       = tcell.ColorYellow  // Жёлтый
+	YAMLColorMetadata   = tcell.ColorAqua    // Бирюзовый - для metadata
+	YAMLColorSpec       = tcell.ColorFuchsia // Фуксия - для spec
+	YAMLColorStatus     = tcell.ColorRed     // Красный - для status
+	YAMLColorString     = tcell.ColorYellow  // Жёлтый - для строк
+	YAMLColorNumber     = tcell.ColorAqua    // Бирюзовый - для чисел
+	YAMLColorBoolean    = tcell.ColorFuchsia // Фуксия - для true/false
 )

@@ -22,7 +22,7 @@ func GerProjectBuildInfo() (*debug.BuildInfo, error) {
 	return bi, nil
 }
 
-func PrintVersionAndExit() error {
+func PrintVersionAndExit(string) error {
 	bi, err := GerProjectBuildInfo()
 
 	if err != nil {

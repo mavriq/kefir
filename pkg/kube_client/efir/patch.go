@@ -22,6 +22,7 @@ type (
 	}
 )
 
+// сгенерировать структуру, которая будет передана в PACTH-метод в куб
 func (e *Efir) GenPatch() (string, error) {
 	p := patch{
 		Op:   "add",
@@ -30,14 +31,14 @@ func (e *Efir) GenPatch() (string, error) {
 			Name:                e.ephyContainerName,
 			Image:               e.imageName,
 			TargetContainerName: e.targetContainerName,
-			Stdim:               true,
+			Stdin:               true,
 			Tty:                 true,
 			VolumeMounts:        make([]patchValueVolumeMount, len(e.selectedMountOptions)),
 		},
 	}
 	for i, mo := range e.selectedMountOptions {
-		p.Value.VolumeMounts[i].patchValueVolumeMount.Name = mo.GetName()
-		p.Value.VolumeMounts[i].patchValueVolumeMount.MountPath = mo.GetMountPath()
+		p.Value.VolumeMounts[i].Name = mo.GetName()
+		p.Value.VolumeMounts[i].MountPath = mo.GetMountPath()
 	}
 
 	bb, err := json.Marshal([]patch{p})

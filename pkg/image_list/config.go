@@ -10,7 +10,8 @@ type (
 	Config []ImageItem
 
 	ImageItem struct {
-		Image string `json:"image" yaml:"image" mapstructure:"image"`
+		Image string   `json:"image" yaml:"image" mapstructure:"image"`                            // имя образа
+		Tags  []string `json:"tags,omitempty" yaml:"tags,omitempty" mapstructure:"tags,omitempty"` // список тегов в качестве подсказки
 	}
 )
 

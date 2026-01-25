@@ -16,7 +16,5 @@ import (
 	_ "k8s.io/client-go/tools/cache"
 	_ "k8s.io/client-go/tools/clientcmd"
 
-	_ "github.com/docker/docker/api"
-	_ "github.com/docker/docker/registry"
 	_ "github.com/moby/moby/client"
 )

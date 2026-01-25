@@ -46,8 +46,8 @@ func CreateTextPanel(title string, scrollable bool) (*tview.TextView, *tview.Fra
 		SetRegions(false).
 		SetWordWrap(false).
 		SetScrollable(scrollable).
-		SetTextColor(ColorText).
-		SetBackgroundColor(ColorBackground)
+		SetTextColor(ColorText)
+		// SetBackgroundColor(ColorBackground)
 
 	frame := tview.NewFrame(textView).
 		SetBorders(1, 1, 0, 0, 2, 2)

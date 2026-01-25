@@ -16,20 +16,20 @@ type mountOptionDescriptionMountedTo struct {
 	SubPath       string `json:"subPath,omitempty"`
 }
 
-func (m mountOptionDescriptionMountedTo) String() {
+func (m *mountOptionDescriptionMountedTo) String() string {
 	b := &strings.Builder{}
 	b.WriteString(m.ContainerName)
 
 	if m.ReadOnly {
-		fmt.Fprint(&b, "(ro) ")
+		fmt.Fprint(b, "(ro) ")
 	} else {
-		fmt.Fprint(&b, "(rw) ")
+		fmt.Fprint(b, "(rw) ")
 	}
 
 	b.WriteString(m.MountPath)
 
 	if m.SubPath != "" {
-		fmt.Fprintf(&b, " [%s]", m.MountPath)
+		fmt.Fprintf(b, " [%s]", m.MountPath)
 	}
 
 	return b.String()
@@ -45,7 +45,7 @@ func (m mountOptionDescription) String() string {
 	if len(m.MountedTo) > 0 {
 		b.WriteString("mountedTo:\n")
 		for _, mt := range m.MountedTo {
-			fmt.Fprintf(&b, "  - %s\n", mt.String())
+			fmt.Fprintf(b, "  - %w\n", &mt)
 		}
 	}
 	bb, _ := yaml.Marshal(m.VolumeSource)
@@ -64,10 +64,6 @@ type MountOptionImpl struct {
 	description mountOptionDescription
 }
 
-func (m *MountOptionImpl) GetName() string {
-	return m.Name
-}
-
 func (m *MountOptionImpl) Title() string {
 	readOnlyText := ""
 	if m.ReadOnly {
@@ -83,7 +79,7 @@ func (m *MountOptionImpl) Title() string {
 }
 
 func (m *MountOptionImpl) Description() string {
-	return description.String()
+	return m.description.String()
 }
 
 func (m *MountOptionImpl) GetMountPath() string {
@@ -102,6 +98,10 @@ func (m *MountOptionImpl) SetReadOnly(readOnly bool) {
 	m.ReadOnly = readOnly
 }
 
+func (m *MountOptionImpl) GetName() string {
+	return m.Name
+}
+
 func (m *MountOptionImpl) Clone() ui.MountOption {
 	return &MountOptionImpl{
 		Name:        m.Name,
@@ -111,19 +111,23 @@ func (m *MountOptionImpl) Clone() ui.MountOption {
 	}
 }
 
+var _ ui.MountOption = &MountOptionImpl{}
+
 // GetAllMountOptions - из списка волумов Pod-а и всех найденных контейнеров пода составляет
 // список имплементаций ui.MountOption
 // список всех контейнеров нужен для более детальной информации в description
 func GetAllMountOptions(volumes []corev1.Volume, allContainers []ContainerSelection) []ui.MountOption {
 
-	volumes := make(ui.MountOption, 0, len(volumes))
+	// volumes := make(ui.MountOption, 0, len(volumes))
+	// mountOptions := make([]*MountOptionImpl, 0, len(volumes))
+	mountOptions := make([]ui.MountOption, 0, len(volumes))
 
-	for _, sv := range volumes {
+	for i, sv := range volumes {
 		description := mountOptionDescription{VolumeSource: sv.VolumeSource}
 		// description.WriteString("used on containers:\n")
 
 		for _, c := range allContainers {
-			for _, vm := range c.VolumeMounts {
+			for _, vm := range c.Container.VolumeMounts {
 				if sv.Name == vm.Name {
 					description.MountedTo = append(
 						description.MountedTo, mountOptionDescriptionMountedTo{
@@ -136,12 +140,13 @@ func GetAllMountOptions(volumes []corev1.Volume, allContainers []ContainerSelect
 			}
 		}
 
-		volumes = append(volumes, ui.MountOption{
+		mountOptions[i] = &MountOptionImpl{
 			Name:        sv.Name,
 			MountPath:   "/run/volumes/" + sv.Name,
 			ReadOnly:    true,
 			description: description,
-		})
+		}
 	}
 
+	return mountOptions
 }

@@ -10,8 +10,8 @@ func addSuffix(in string) string {
 	suffix := make([]byte, ln)
 
 	for i := range suffix {
-		b[i] = alphabet[rand.IntN(alpaLn)]
+		suffix[i] = alphabet[rand.IntN(alphaLn)]
 	}
 
-	return in + "-" + suffix
+	return in + "-" + string(suffix)
 }

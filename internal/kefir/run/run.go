@@ -13,15 +13,16 @@ import (
 func RunFunc(cmd *cobra.Command, args []string) (err error) {
 	var (
 		podName              string
-		pods                 []corev1.Pod
+		allPods              []corev1.Pod
 		selectedPod          *corev1.Pod
 		allContainers        []ContainerSelection
 		selectedContainer    *ContainerSelection
 		allMountOptions      []ui.MountOption
 		selectedMountOptions []ui.MountOption
 		ephyContainerName    string
-		noop                 string
+		noop                 bool
 		imageName            string = "alpine:latest"
+		kefir                *efir.Efir
 	)
 	if len(args) != 1 {
 		return ErrorWrongAttributes
@@ -32,7 +33,7 @@ func RunFunc(cmd *cobra.Command, args []string) (err error) {
 
 	ctx := my_ctx.CtxWithOsSignal()
 
-	if pods, err = kube_client.FetchPodsFromK8s(ctx, ns, podName); err != nil {
+	if allPods, err = kube_client.FetchPodsFromK8s(ctx, ns, podName); err != nil {
 		return err
 	}
 
@@ -48,15 +49,21 @@ func RunFunc(cmd *cobra.Command, args []string) (err error) {
 
 	allMountOptions = GetAllMountOptions(selectedPod.Spec.Volumes, allContainers)
 
-	if selectedMountOptions, err = SelectMounts(ctx, &mountOptions); err != nil {
+	// if selectedMountOptions, err = SelectMounts(ctx, convertSlice[*MountOptionImpl, ui.MountOption](allMountOptions)); err != nil {
+	if selectedMountOptions, err = SelectMounts(ctx, allMountOptions); err != nil {
 		return err
 	}
 
-	ephyContainerName, _ := cmd.Flags().GetString("container-name")
+	ephyContainerName, _ = cmd.Flags().GetString("container-name")
 
-	kefir := efir.New(imageName, ns, podName, ephyContainerName, selectedContainer.Container, selectedMountOptions)
+	if kefir, err = efir.New(
+		imageName, ns, podName, ephyContainerName,
+		selectedContainer.Container, selectedMountOptions); err != nil {
 
-	noop, _ := cmd.Flags().GetString("noop")
+		return err
+	}
+
+	noop, _ = cmd.Flags().GetBool("noop")
 
 	if noop {
 		return kefir.Noop(ctx)
