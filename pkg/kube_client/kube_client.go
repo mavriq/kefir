@@ -33,11 +33,13 @@ func KubeConfig() clientcmd.ClientConfig {
 	return kubeConfig
 }
 
-func RestConfig() (c *restclient.Config, err error) {
+func RestConfig() (*restclient.Config, error) {
+	var err error
+
 	if restConfig == nil {
-		c, err = kubeConfig.ClientConfig()
+		restConfig, err = KubeConfig().ClientConfig()
 	}
-	return c, err
+	return restConfig, err
 }
 
 func ClientSet() (cs *kubernetes.Clientset, err error) {
