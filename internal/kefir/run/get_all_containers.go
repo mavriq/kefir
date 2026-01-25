@@ -18,12 +18,12 @@ func (selection ContainerSelection) String() string {
 		return GetOrSelectContainerOptionNone
 	}
 
-	i := ""
+	initPrefix := ""
 	if selection.IsInit {
-		i = GetOrSelectContainerOptionInitPrefix
+		initPrefix = GetOrSelectContainerOptionInitPrefix
 	}
 
-	return fmt.Sprintf("%s#%i %s", i, selection.Index, selection.Container.Name)
+	return fmt.Sprintf("%s#%d %s", initPrefix, selection.Index, selection.Container.Name)
 }
 
 // GetAllContainers возвращает все контейнеры в виде ContainerSelection
