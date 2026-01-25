@@ -16,7 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"kefir/internal/kefir/run"
+	"kefir/internal/my_ctx"
 	"kefir/internal/version"
+	"kefir/pkg/kube_client"
+
 	"os"
 
 	"github.com/spf13/cobra"
@@ -29,9 +33,22 @@ var rootCmd = &cobra.Command{
 	Long: `
 Утилита для легкого создания эфемерных контейнеров в kubernetes
 `,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Args: cobra.ExactArgs(1),
+	RunE: run.RunFunc,
+	ValidArgsFunction: func(cmd *cobra.Command, args []string, podToComplete string) ([]string, cobra.ShellCompDirective) {
+		if len(args) != 0 {
+			// Мы ждем только один аргумент, для остальных дополнение не нужно
+			return nil, cobra.ShellCompDirectiveNoFileComp
+		}
+
+		ns, _ := cmd.Flags().GetString("namespace")
+
+		ctx := my_ctx.CtxWithOsSignal()
+
+		pns, _ := kube_client.FetchPodNamesFromK8s(ctx, ns, podToComplete)
+
+		return pns, cobra.ShellCompDirectiveNoFileComp
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -46,13 +63,10 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().BoolFuncP("version", "v", "print version and exit", version.PrintVersionAndExit)
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().StringP("namespace", "n", "", "If present, the namespace scope for this CLI request")
+	rootCmd.PersistentFlags().StringP("container-name", "N", "", "Имя создаваемого эфемерного контейнера. если пропущено - рандомное значение")
+	rootCmd.PersistentFlags().BoolP("noop", "", false, "Do not run commands, only print kubectl commands")
+
 }
