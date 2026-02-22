@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"kefir/pkg/image_list"
+	"kefir/internal/image_list"
 	"os"
 
 	"github.com/spf13/cobra"
