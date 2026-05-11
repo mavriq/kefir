@@ -43,7 +43,7 @@ func New(imageName, ns, podName, ephyContainerName string,
 		ephyContainerName: ephyContainerName,
 		selectedMountOptions: slices.DeleteFunc(
 			selectedMountOptions, func(m ui.MountOption) bool {
-				return m.GetMountPath() != ""
+				return m.GetMountPath() == ""
 			}),
 	}
 

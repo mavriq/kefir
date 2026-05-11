@@ -19,6 +19,7 @@ type (
 	patchValueVolumeMount struct {
 		Name      string `json:"name"`
 		MountPath string `json:"mountPath"`
+		ReadOnly  bool   `json:"readOnly"`
 	}
 )
 
@@ -39,6 +40,7 @@ func (e *Efir) GenPatch() (string, error) {
 	for i, mo := range e.selectedMountOptions {
 		p.Value.VolumeMounts[i].Name = mo.GetName()
 		p.Value.VolumeMounts[i].MountPath = mo.GetMountPath()
+		p.Value.VolumeMounts[i].ReadOnly = mo.GetReadOnly()
 	}
 
 	bb, err := json.Marshal([]patch{p})
