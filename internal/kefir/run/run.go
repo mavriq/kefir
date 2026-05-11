@@ -21,11 +21,15 @@ func RunFunc(cmd *cobra.Command, args []string) (err error) {
 		selectedMountOptions []ui.MountOption
 		ephyContainerName    string
 		noop                 bool
-		imageName            string = "alpine:latest"
+		imageName            string
 		kefir                *efir.Efir
 	)
 	if len(args) != 1 {
 		return ErrorWrongAttributes
+	}
+
+	if imageName, err = cmd.Flags().GetString("image"); err != nil {
+		return err
 	}
 
 	ns, _ := cmd.Flags().GetString("namespace")

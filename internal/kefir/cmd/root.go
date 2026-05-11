@@ -31,7 +31,7 @@ var rootCmd = &cobra.Command{
 	Use:   "kefir",
 	Short: "Утилита для легкого создания эфемерных контейнеров в kubernetes",
 	Long: `
-Утилита для легкого создания эфемерных контейнеров в kubernetes
+Утилита для удобного создания эфемерных контейнеров в kubernetes
 `,
 	Args: cobra.ExactArgs(1),
 	RunE: run.RunFunc,
@@ -61,9 +61,9 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
 	rootCmd.PersistentFlags().BoolFuncP("version", "v", "print version and exit", version.PrintVersionAndExit)
+
+	rootCmd.PersistentFlags().StringP("image", "i", "", "Имя образа добавляемого эфемерного контейнера")
 
 	rootCmd.PersistentFlags().StringP("namespace", "n", "", "If present, the namespace scope for this CLI request")
 	rootCmd.PersistentFlags().StringP("container-name", "N", "", "Имя создаваемого эфемерного контейнера. если пропущено - рандомное значение")
