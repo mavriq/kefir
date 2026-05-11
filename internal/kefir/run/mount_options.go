@@ -3,36 +3,24 @@ package run
 import (
 	"fmt"
 	"kefir/pkg/ui"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/yaml"
 )
 
 type mountOptionDescriptionMountedTo struct {
-	ContainerName string `json:"containerName"`
+	ContainerName string `json:"container"`
 	ReadOnly      bool   `json:"readOnly,omitempty"`
 	MountPath     string `json:"mountPath"`
 	SubPath       string `json:"subPath,omitempty"`
 }
 
 func (m *mountOptionDescriptionMountedTo) String() string {
-	b := &strings.Builder{}
-	b.WriteString(m.ContainerName)
-
-	if m.ReadOnly {
-		fmt.Fprint(b, "(ro) ")
-	} else {
-		fmt.Fprint(b, "(rw) ")
-	}
-
-	b.WriteString(m.MountPath)
-
-	if m.SubPath != "" {
-		fmt.Fprintf(b, " [%s]", m.MountPath)
-	}
-
-	return b.String()
+	return fmt.Sprintf("%s %s %s",
+		m.ContainerName,
+		IsRoIcons[m.ReadOnly],
+		m.MountPath,
+	)
 }
 
 type mountOptionDescription struct {
@@ -41,19 +29,9 @@ type mountOptionDescription struct {
 }
 
 func (m mountOptionDescription) String() string {
-	b := &strings.Builder{}
-	if len(m.MountedTo) > 0 {
-		b.WriteString("mountedTo:\n")
-		for _, mt := range m.MountedTo {
-			fmt.Fprintf(b, "  - %v\n", &mt)
-		}
-		fmt.Fprintln(b, "")
-	}
-	bb, _ := yaml.Marshal(m.VolumeSource)
+	s, _ := yaml.Marshal(m)
 
-	b.Write(bb)
-
-	return b.String()
+	return string(s)
 }
 
 // MountOptionImpl - реализация интерфейса ui.MountOption
@@ -66,17 +44,12 @@ type MountOptionImpl struct {
 }
 
 func (m *MountOptionImpl) Title() string {
-	readOnlyText := ""
-	if m.ReadOnly {
-		readOnlyText = "🔒"
+	if m.MountPath == "" {
+
+		return fmt.Sprintf("❌ %s", m.Name)
 	}
 
-	mountPath := "[DO NOT MOUNT]"
-	if m.MountPath != "" {
-		mountPath = m.MountPath
-	}
-
-	return fmt.Sprintf("%s → %s%s", m.Name, mountPath, readOnlyText)
+	return fmt.Sprintf("%s %s → %s", IsRoIcons[m.ReadOnly], m.Name, m.MountPath)
 }
 
 func (m *MountOptionImpl) Description() string {

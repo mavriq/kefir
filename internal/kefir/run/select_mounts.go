@@ -26,7 +26,7 @@ func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.Moun
 	config := ui.WindowConfig{
 		Title:          SelectMountsTitleText,
 		Instructions:   SelectMountsInstructions,
-		EnableCheckbox: true, // Включаем checkbox режим
+		EnableCheckbox: false, // Включаем checkbox режим
 		InitialFocus:   ui.FocusLeft,
 	}
 

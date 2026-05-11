@@ -36,3 +36,10 @@ const (
 	SelectMountsInstructions   = "Space: Select  Tab: Switch  ↑↓: Navigate  Esc: Save & Exit"
 	SelectMountsErrorCancelled = "mount configuration cancelled"
 )
+
+var (
+	IsRoIcons = map[bool]string{
+		true:  "🔒",
+		false: "✍️",
+	}
+)
