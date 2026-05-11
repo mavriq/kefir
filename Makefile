@@ -7,6 +7,9 @@ REPO := $(shell $(GO) list -m)
 
 APP_VERSION := 0.1-alpha
 
+PREFIX ?= /usr/local
+BINDIR = $(PREFIX)/bin
+
 GO_BUILD_ARGS := 
 # GO_BUILD_ARGS := \
 #   -ldflags " \
@@ -73,3 +76,12 @@ lint-fix:
 	  --verbose \
 	  --skip-dirs-use-default \
 	  --allow-parallel-runners
+
+.PHONY: install
+install: $(BIN_DESTS)
+	install	-d $(DESTDIR)$(BINDIR)
+	install -m 0755 $(BIN_DESTS) $(DESTDIR)$(BINDIR)/
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(addprefix $(DESTDIR)$(BINDIR)/,$(BIN_NAMES))
