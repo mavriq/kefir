@@ -28,7 +28,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "kefir",
+	Use:   "kubectl-efir",
 	Short: "Утилита для легкого создания эфемерных контейнеров в kubernetes",
 	Long: `
 Утилита для удобного создания эфемерных контейнеров в kubernetes
