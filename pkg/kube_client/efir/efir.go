@@ -62,20 +62,35 @@ func (e *Efir) Noop(ctx context.Context) (err error) {
 	}
 
 	cmd1 := []string{
-		"kubectl", "patch", "pod",
+		"kubectl", "patch",
+		"pod", e.podName,
 		"-n", e.ns,
 		"--subresource=ephemeralcontainers",
 		"--type='json'",
 		"-p", fmt.Sprintf("<(echo '%s')", patch),
+		"\n",
+	}
+	cmd2 := []string{
+		"kubectl", "attach", "-it",
+		"-n", e.ns,
+		e.podName,
+		"--container",
+		e.ephyContainerName,
+		"\n",
 	}
 
 	fmt.Printf(strings.Join(cmd1, " "))
+	fmt.Printf(strings.Join(cmd2, " "))
 
 	return nil
 }
 
 func (p *Efir) Exec(ctx context.Context) (err error) {
 	_, err = kube_client.ClientSet()
+
+	// TODO: пропатчить Pod
+	// TODO: подождать когда эфемерный контейнер появится
+	// TODO: подключиться к шелл-у
 
 	return err
 	// TODO: запилить
