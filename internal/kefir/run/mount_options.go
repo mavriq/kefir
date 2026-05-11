@@ -100,7 +100,6 @@ func GetAllMountOptions(volumes []corev1.Volume, allContainers []ContainerSelect
 
 	for i, sv := range volumes {
 		description := mountOptionDescription{VolumeSource: sv.VolumeSource}
-		// description.WriteString("used on containers:\n")
 
 		for _, c := range allContainers {
 			for _, vm := range c.Container.VolumeMounts {

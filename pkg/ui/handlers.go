@@ -77,6 +77,9 @@ type MountOptionsHandler struct {
 
 	// Контейнер для формы
 	formFlex *tview.Flex
+
+	// нужен для переключения фокуса между полями ввода в правой панели
+	app *tview.Application
 }
 
 func NewMountOptionsHandler(options []MountOption) *MountOptionsHandler {
@@ -99,6 +102,15 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 			}
 		})
 
+	h.mountPathField.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyDown, tcell.KeyEnter:
+			h.app.SetFocus(h.readOnlyCheckbox) // Переходим на чекбокс
+			return nil                         // Событие обработано
+		}
+		return event
+	})
+
 	h.readOnlyCheckbox = tview.NewCheckbox().
 		SetLabel("Read Only: ").
 		SetChangedFunc(func(checked bool) {
@@ -109,9 +121,31 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 			}
 		})
 
+	h.readOnlyCheckbox.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyUp:
+			h.app.SetFocus(h.mountPathField) // Возвращаемся вверх
+			return nil
+		case tcell.KeyDown:
+			h.app.SetFocus(h.descriptionView) // Идем к описанию
+			return nil
+		}
+		return event
+	})
+
 	h.descriptionView = tview.NewTextView().
 		SetDynamicColors(true).
 		SetWordWrap(true)
+	h.descriptionView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyUp {
+			row, _ := h.descriptionView.GetScrollOffset()
+			if row == 0 {
+				h.app.SetFocus(h.readOnlyCheckbox)
+				return nil
+			}
+		}
+		return event
+	})
 
 	// Создаем layout для формы
 	h.formFlex = tview.NewFlex().
@@ -150,20 +184,8 @@ func (h *MountOptionsHandler) UpdateContent(index int) {
 }
 
 func (h *MountOptionsHandler) HandleInput(event *tcell.EventKey, app *tview.Application) *tcell.EventKey {
-	switch event.Key() {
-	case tcell.KeyTab:
-		// Переключение между полями формы
-		currentFocus := app.GetFocus()
-		if currentFocus == h.mountPathField {
-			app.SetFocus(h.readOnlyCheckbox)
-		} else if currentFocus == h.readOnlyCheckbox {
-			app.SetFocus(h.mountPathField)
-		}
-		return nil
-	case tcell.KeyEnter:
-		// Подтверждение ввода в поле
-		return nil
-	}
+	h.app = app
+
 	return event
 }
 
