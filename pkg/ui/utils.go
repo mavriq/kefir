@@ -25,3 +25,15 @@ func MapToTitleStrings(items []interface{}) []string {
 	}
 	return result
 }
+
+type permanentRightPanelTitledElem struct {
+	title string
+}
+
+func (e *permanentRightPanelTitledElem) Title() string {
+	return e.title
+}
+
+func PermanentRightPanelTitledElem(title string) RightPanelTitledElem {
+	return &permanentRightPanelTitledElem{title: title}
+}

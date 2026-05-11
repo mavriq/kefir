@@ -23,7 +23,8 @@ func CreateInstructions(text string) *tview.TextView {
 }
 
 // CreateListPanel - создает панель со списком
-func CreateListPanel(title string, enableCheckbox bool) (*tview.List, *tview.Frame) {
+// func CreateListPanel(title string, enableCheckbox bool) (*tview.List, *tview.Frame) {
+func CreateListPanel(title string) (*tview.List, *tview.Frame) {
 	list := tview.NewList().
 		ShowSecondaryText(false).
 		SetMainTextColor(ColorText).

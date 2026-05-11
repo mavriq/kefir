@@ -23,17 +23,16 @@ func SelectPod(ctx context.Context, pods []corev1.Pod) (*corev1.Pod, error) {
 	handler := ui.NewYAMLPreviewHandler(items)
 
 	// Создаем имена для левой панели
-	names := make([]string, len(pods))
+	names := make([]ui.RightPanelTitledElem, len(pods))
 	for i, pod := range pods {
-		names[i] = pod.Name
+		names[i] = ui.PermanentRightPanelTitledElem(pod.Name)
 	}
 
 	// Конфигурация окна
 	config := ui.WindowConfig{
-		Title:          GetOrSelectPodTitleText,
-		Instructions:   GetOrSelectPodInstructions,
-		EnableCheckbox: false, // Обычный выбор, не checkbox
-		InitialFocus:   ui.FocusLeft,
+		Title:        GetOrSelectPodTitleText,
+		Instructions: GetOrSelectPodInstructions,
+		InitialFocus: ui.FocusLeft,
 	}
 
 	// Создаем и запускаем окно

@@ -20,10 +20,9 @@ const (
 
 // WindowConfig - конфигурация окна
 type WindowConfig struct {
-	Title          string    // Заголовок окна
-	Instructions   string    // Инструкции в подвале
-	EnableCheckbox bool      // Включить checkbox режим (для множественного выбора)
-	InitialFocus   FocusSide // Какая панель в фокусе при старте
+	Title        string    // Заголовок окна
+	Instructions string    // Инструкции в подвале
+	InitialFocus FocusSide // Какая панель в фокусе при старте
 }
 
 // RightPanelHandler - интерфейс для поведения правой панели
@@ -46,7 +45,8 @@ type RightPanelHandler interface {
 
 // MountOption - интерфейс для ConfigureMounts
 type MountOption interface {
-	Title() string             // Название, коротко описывающее Volume
+	RightPanelTitledElem
+	// Title() string             // Название, коротко описывающее Volume
 	Description() string       // Детальное описание Volume
 	GetMountPath() string      // Вернуть точку монтирования для этого Volume в создаваемом эфемерном контейнере
 	SetMountPath(path string)  // Задать точку монтирования для этого Volume в создаваемом эфемерном контейнере
@@ -59,4 +59,9 @@ type MountOption interface {
 type SelectionResult struct {
 	Index int
 	Item  interface{}
+}
+
+// элемент правого списка, умеющий интерактивно изменять свой заголовок
+type RightPanelTitledElem interface {
+	Title() string // Название, коротко описывающее Volume
 }

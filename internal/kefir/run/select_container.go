@@ -27,17 +27,17 @@ func SelectContainerWithInfo(ctx context.Context, allSelections []ContainerSelec
 
 	// Подготавливаем данные для UI
 	items := make([]interface{}, totalCount)
-	names := make([]string, totalCount)
+	names := make([]ui.RightPanelTitledElem, totalCount)
 
 	for i, selection := range selectionsWithNone {
 		if i == 0 {
 			// Опция "none"
 			items[i] = GetOrSelectContainerOptionNoneDesc
-			names[i] = GetOrSelectContainerOptionNone
+			names[i] = ui.PermanentRightPanelTitledElem(GetOrSelectContainerOptionNone)
 		} else {
 			// Контейнеры
 			items[i] = selection.Container
-			names[i] = selection.String()
+			names[i] = ui.PermanentRightPanelTitledElem(selection.String())
 		}
 	}
 
@@ -46,10 +46,9 @@ func SelectContainerWithInfo(ctx context.Context, allSelections []ContainerSelec
 
 	// Конфигурация окна
 	config := ui.WindowConfig{
-		Title:          GetOrSelectContainerTitleText,
-		Instructions:   GetOrSelectContainerInstructions,
-		EnableCheckbox: false,
-		InitialFocus:   ui.FocusLeft,
+		Title:        GetOrSelectContainerTitleText,
+		Instructions: GetOrSelectContainerInstructions,
+		InitialFocus: ui.FocusLeft,
 	}
 
 	// Создаем и запускаем окно

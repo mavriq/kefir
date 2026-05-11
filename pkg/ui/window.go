@@ -24,27 +24,30 @@ type TwoPanelWindow struct {
 	selectedIndices map[int]bool
 
 	// Оригинальные тексты элементов
-	originalTexts []string
+	// originalTexts []string
+	items []RightPanelTitledElem
 }
 
 // NewTwoPanelWindow создает новое двухпанельное окно
-func NewTwoPanelWindow(config WindowConfig, items []string, handler RightPanelHandler) *TwoPanelWindow {
+func NewTwoPanelWindow[T RightPanelTitledElem](config WindowConfig, rawItems []T, handler RightPanelHandler) *TwoPanelWindow {
+	items := make([]RightPanelTitledElem, len(rawItems))
+	for i, e := range rawItems {
+		items[i] = RightPanelTitledElem(e)
+	}
+
 	app := tview.NewApplication()
 
 	// Сохраняем оригинальные тексты
-	originalTexts := make([]string, len(items))
-	copy(originalTexts, items)
+	// originalTexts := make([]string, len(items))
+	// copy(originalTexts, items)
 
 	// Создаем левую панель
-	leftList, leftFrame := CreateListPanel("Items", config.EnableCheckbox)
+	// leftList, leftFrame := CreateListPanel("Items", config.EnableCheckbox)
+	leftList, leftFrame := CreateListPanel("Items")
 
 	// Заполняем список
 	for i, item := range items {
-		if config.EnableCheckbox {
-			leftList.AddItem("□ "+item, "", rune('1'+i), nil)
-		} else {
-			leftList.AddItem(item, "", rune('1'+i), nil)
-		}
+		leftList.AddItem(item.Title(), "", rune('1'+i), nil)
 	}
 
 	// Создаем правую панель
@@ -66,7 +69,7 @@ func NewTwoPanelWindow(config WindowConfig, items []string, handler RightPanelHa
 		resultChan:      make(chan interface{}, 1),
 		errorChan:       make(chan error, 1),
 		selectedIndices: make(map[int]bool),
-		originalTexts:   originalTexts,
+		items:           items,
 	}
 
 	// Настраиваем обработчики
@@ -83,25 +86,25 @@ func (w *TwoPanelWindow) setupHandlers() {
 
 	// Обработчик выбора (Enter)
 	w.leftList.SetSelectedFunc(func(index int, mainText, secondaryText string, shortcut rune) {
-		if w.config.EnableCheckbox {
-			// В режиме checkbox - переключаем выбор
-			w.toggleSelection(index)
-		} else {
-			// В обычном режиме - выбираем элемент
-			w.selectItem(index)
-		}
+		// if w.config.EnableCheckbox {
+		// 	// В режиме checkbox - переключаем выбор
+		// 	w.toggleSelection(index)
+		// } else {
+		//	// В обычном режиме - выбираем элемент
+		w.selectItem(index)
+		// }
 	})
 
-	// Обработчик ввода в левой панели
-	w.leftList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if w.config.EnableCheckbox && event.Key() == tcell.KeyRune && event.Rune() == ' ' {
-			// Space для выбора в checkbox режиме
-			index := w.leftList.GetCurrentItem()
-			w.toggleSelection(index)
-			return nil
-		}
-		return event
-	})
+	// // Обработчик ввода в левой панели
+	// w.leftList.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+	// 	if w.config.EnableCheckbox && event.Key() == tcell.KeyRune && event.Rune() == ' ' {
+	// 		// Space для выбора в checkbox режиме
+	// 		index := w.leftList.GetCurrentItem()
+	// 		w.toggleSelection(index)
+	// 		return nil
+	// 	}
+	// 	return event
+	// })
 
 	// Глобальная обработка клавиш
 	w.app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -153,35 +156,35 @@ func (w *TwoPanelWindow) selectItem(index int) {
 	w.app.Stop()
 }
 
-func (w *TwoPanelWindow) toggleSelection(index int) {
-	if _, selected := w.selectedIndices[index]; selected {
-		delete(w.selectedIndices, index)
-		w.leftList.SetItemText(index, "□ "+w.getOriginalItemText(index), "")
-	} else {
-		w.selectedIndices[index] = true
-		w.leftList.SetItemText(index, "✓ "+w.getOriginalItemText(index), "")
-	}
+// func (w *TwoPanelWindow) toggleSelection(index int) {
+// 	if _, selected := w.selectedIndices[index]; selected {
+// 		delete(w.selectedIndices, index)
+// 		w.leftList.SetItemText(index, "□ "+w.getOriginalItemText(index), "")
+// 	} else {
+// 		w.selectedIndices[index] = true
+// 		w.leftList.SetItemText(index, "✓ "+w.getOriginalItemText(index), "")
+// 	}
 
-	// Обновляем правую панель
-	w.rightHandler.UpdateContent(index)
-	w.rightHandler.NotifyLeftPanelUpdate(index, w.leftList)
-}
+// 	// Обновляем правую панель
+// 	w.rightHandler.UpdateContent(index)
+// 	w.rightHandler.NotifyLeftPanelUpdate(index, w.leftList)
+// }
 
 func (w *TwoPanelWindow) getOriginalItemText(index int) string {
-	if index < 0 || index >= len(w.originalTexts) {
+	if index < 0 || index >= len(w.items) {
 		return ""
 	}
-	return w.originalTexts[index]
+	return w.items[index].Title()
 }
 
 func (w *TwoPanelWindow) cancelSelection() {
-	if w.config.EnableCheckbox {
-		// Для ConfigureMounts возвращаем модифицированные данные
-		w.resultChan <- w.rightHandler.GetResult()
-	} else {
-		// Для окон выбора возвращаем ошибку отмены
-		w.errorChan <- fmt.Errorf(ErrorSelectionCancelled)
-	}
+	// if w.config.EnableCheckbox {
+	// 	// Для ConfigureMounts возвращаем модифицированные данные
+	// 	w.resultChan <- w.rightHandler.GetResult()
+	// } else {
+	// Для окон выбора возвращаем ошибку отмены
+	w.errorChan <- fmt.Errorf(ErrorSelectionCancelled)
+	// }
 	w.app.Stop()
 }
 

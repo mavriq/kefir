@@ -16,22 +16,22 @@ func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.Moun
 	// Создаем handler для правой панели (форма редактирования)
 	handler := ui.NewMountOptionsHandler(mountOptions)
 
-	// Создаем имена для левой панели
-	names := make([]string, len(mountOptions))
-	for i, opt := range mountOptions {
-		names[i] = opt.Title()
-	}
+	// // Создаем имена для левой панели
+	// names := make([]string, len(mountOptions))
+	// for i, opt := range mountOptions {
+	// 	names[i] = opt.Title()
+	// }
 
 	// Конфигурация окна
 	config := ui.WindowConfig{
-		Title:          SelectMountsTitleText,
-		Instructions:   SelectMountsInstructions,
-		EnableCheckbox: false, // Включаем checkbox режим
-		InitialFocus:   ui.FocusLeft,
+		Title:        SelectMountsTitleText,
+		Instructions: SelectMountsInstructions,
+		InitialFocus: ui.FocusLeft,
 	}
 
 	// Создаем и запускаем окно
-	window := ui.NewTwoPanelWindow(config, names, handler)
+	// window := ui.NewTwoPanelWindow(config, names, handler)
+	window := ui.NewTwoPanelWindow(config, mountOptions, handler)
 	_, err := window.Run(ctx)
 	if err != nil {
 		if err.Error() == "selection cancelled" {
