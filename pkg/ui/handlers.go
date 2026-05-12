@@ -1,7 +1,9 @@
 package ui
 
 import (
+	"context"
 	"fmt"
+	"kefir/pkg/snippet"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -58,8 +60,12 @@ func (h *YAMLPreviewHandler) GetResult() interface{} {
 	return nil // Результат получается через SelectionResult
 }
 
-func (h *YAMLPreviewHandler) NotifyLeftPanelUpdate(index int, list *tview.List) {
-	// Не требуется для YAML preview
+// func (h *YAMLPreviewHandler) NotifyLeftPanelUpdate(index int, list *tview.List) {
+// 	// Не требуется для YAML preview
+// }
+
+func (h *YAMLPreviewHandler) Watch(ctx context.Context) <-chan struct{} {
+	return neverWatch(ctx)
 }
 
 // ==================== MountOptionsHandler ====================
@@ -80,13 +86,20 @@ type MountOptionsHandler struct {
 
 	// нужен для переключения фокуса между полями ввода в правой панели
 	app *tview.Application
+	// onChanged func(idx int, updatedTitle string) // колбэк для уведомления левой панели
+
+	watchChan        chan struct{}
+	watchBroadcaster snippet.Broadcaster[struct{}]
 }
 
 func NewMountOptionsHandler(options []MountOption) *MountOptionsHandler {
-	return &MountOptionsHandler{
+	h := &MountOptionsHandler{
 		options:    options,
 		currentIdx: -1,
+		watchChan:  make(chan struct{}, 1),
 	}
+	h.watchBroadcaster = snippet.NewBroadcaster(h.watchChan)
+	return h
 }
 
 func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
@@ -98,7 +111,8 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 			if h.currentIdx >= 0 && h.currentIdx < len(h.options) {
 				h.options[h.currentIdx].SetMountPath(text)
 				h.updateDescription()
-				h.notifyLeftPanelUpdate()
+				// h.notifyLeftPanelUpdate()
+				h.watchChan <- struct{}{}
 			}
 		})
 
@@ -117,7 +131,8 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 			if h.currentIdx >= 0 && h.currentIdx < len(h.options) {
 				h.options[h.currentIdx].SetReadOnly(checked)
 				h.updateDescription()
-				h.notifyLeftPanelUpdate()
+				// h.notifyLeftPanelUpdate()
+				h.watchChan <- struct{}{}
 			}
 		})
 
@@ -193,8 +208,12 @@ func (h *MountOptionsHandler) GetResult() interface{} {
 	return h.options // Возвращаем модифицированные options
 }
 
-func (h *MountOptionsHandler) NotifyLeftPanelUpdate(index int, list *tview.List) {
-	h.list = list
+// func (h *MountOptionsHandler) NotifyLeftPanelUpdate(index int, list *tview.List) {
+// 	h.list = list
+// }
+
+func (h *MountOptionsHandler) Watch(ctx context.Context) <-chan struct{} {
+	return h.watchBroadcaster.Subscribe(ctx, 1)
 }
 
 // Вспомогательные методы
@@ -205,13 +224,13 @@ func (h *MountOptionsHandler) updateDescription() {
 	}
 }
 
-func (h *MountOptionsHandler) notifyLeftPanelUpdate() {
-	if h.list != nil && h.currentIdx >= 0 && h.currentIdx < len(h.options) {
-		// Обновляем текст в списке
-		mainText := h.options[h.currentIdx].Title()
-		h.list.SetItemText(h.currentIdx, mainText, "")
-	}
-}
+// func (h *MountOptionsHandler) notifyLeftPanelUpdate() {
+// 	if h.list != nil && h.currentIdx >= 0 && h.currentIdx < len(h.options) {
+// 		// Обновляем текст в списке
+// 		mainText := h.options[h.currentIdx].Title()
+// 		h.list.SetItemText(h.currentIdx, mainText, "")
+// 	}
+// }
 
 // ==================== Вспомогательные функции ====================
 
@@ -244,4 +263,15 @@ func highlightYAML(yamlText string) string {
 	}
 
 	return strings.Join(highlighted, "\n")
+}
+
+func neverWatch(ctx context.Context) <-chan struct{} {
+	ret := make(chan struct{}, 1)
+
+	go func() {
+		defer close(ret)
+		<-ctx.Done()
+	}()
+
+	return ret
 }

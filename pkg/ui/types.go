@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"context"
+
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -39,8 +41,11 @@ type RightPanelHandler interface {
 	// Получение результата (для окон с выбором)
 	GetResult() interface{}
 
-	// Обновление левой панели при изменениях (для ConfigureMounts)
-	NotifyLeftPanelUpdate(index int, list *tview.List)
+	// // Обновление левой панели при изменениях (для ConfigureMounts)
+	// NotifyLeftPanelUpdate(index int, list *tview.List)
+
+	// Метод оповещает о том, что левую панель стоит перерисовать
+	Watch(context.Context) <-chan struct{}
 }
 
 // MountOption - интерфейс для ConfigureMounts

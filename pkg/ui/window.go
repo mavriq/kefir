@@ -30,6 +30,8 @@ type TwoPanelWindow struct {
 
 // NewTwoPanelWindow создает новое двухпанельное окно
 func NewTwoPanelWindow[T RightPanelTitledElem](config WindowConfig, rawItems []T, handler RightPanelHandler) *TwoPanelWindow {
+	// var items []RightPanelTitledElem = snippet.ConvertSlice[RightPanelTitledElem, RightPanelTitledElem](rawItems)
+
 	items := make([]RightPanelTitledElem, len(rawItems))
 	for i, e := range rawItems {
 		items[i] = RightPanelTitledElem(e)
@@ -37,18 +39,8 @@ func NewTwoPanelWindow[T RightPanelTitledElem](config WindowConfig, rawItems []T
 
 	app := tview.NewApplication()
 
-	// Сохраняем оригинальные тексты
-	// originalTexts := make([]string, len(items))
-	// copy(originalTexts, items)
-
 	// Создаем левую панель
-	// leftList, leftFrame := CreateListPanel("Items", config.EnableCheckbox)
 	leftList, leftFrame := CreateListPanel("Items")
-
-	// Заполняем список
-	for i, item := range items {
-		leftList.AddItem(item.Title(), "", rune('1'+i), nil)
-	}
 
 	// Создаем правую панель
 	rightPanel := handler.CreatePanel()
@@ -72,10 +64,21 @@ func NewTwoPanelWindow[T RightPanelTitledElem](config WindowConfig, rawItems []T
 		items:           items,
 	}
 
+	// наполняем список в левой панели
+	window.FillLeftList()
+
 	// Настраиваем обработчики
 	window.setupHandlers()
 
 	return window
+}
+
+func (w *TwoPanelWindow) FillLeftList() {
+	w.leftList.Clear()
+	// Заполняем список
+	for i, item := range w.items {
+		w.leftList.AddItem(item.Title(), "", rune('1'+i), nil)
+	}
 }
 
 func (w *TwoPanelWindow) setupHandlers() {
@@ -91,6 +94,7 @@ func (w *TwoPanelWindow) setupHandlers() {
 		// 	w.toggleSelection(index)
 		// } else {
 		//	// В обычном режиме - выбираем элемент
+
 		w.selectItem(index)
 		// }
 	})
@@ -190,6 +194,14 @@ func (w *TwoPanelWindow) cancelSelection() {
 
 // Run запускает окно и ожидает результат
 func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
+
+	rightPanelChangedChan := w.rightHandler.Watch(ctx)
+	go func() {
+		for range rightPanelChangedChan {
+			w.FillLeftList()
+		}
+	}()
+
 	// Создаем layout
 	panelsFlex := tview.NewFlex().
 		AddItem(w.leftFrame, 0, 1, true).  // Левая панель, изначально в фокусе

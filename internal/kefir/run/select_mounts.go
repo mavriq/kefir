@@ -14,13 +14,7 @@ func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.Moun
 	}
 
 	// Создаем handler для правой панели (форма редактирования)
-	handler := ui.NewMountOptionsHandler(mountOptions)
-
-	// // Создаем имена для левой панели
-	// names := make([]string, len(mountOptions))
-	// for i, opt := range mountOptions {
-	// 	names[i] = opt.Title()
-	// }
+	var handler ui.RightPanelHandler = ui.NewMountOptionsHandler(mountOptions)
 
 	// Конфигурация окна
 	config := ui.WindowConfig{
@@ -30,7 +24,6 @@ func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.Moun
 	}
 
 	// Создаем и запускаем окно
-	// window := ui.NewTwoPanelWindow(config, names, handler)
 	window := ui.NewTwoPanelWindow(config, mountOptions, handler)
 	_, err := window.Run(ctx)
 	if err != nil {
@@ -45,5 +38,4 @@ func SelectMounts(ctx context.Context, mountOptions []ui.MountOption) ([]ui.Moun
 	// Но поскольку мы работали с оригинальными объектами,
 	// они уже модифицированы, просто возвращаем исходный слайс
 	return mountOptions, nil
-	// return result, nil
 }

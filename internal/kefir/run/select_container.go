@@ -42,7 +42,7 @@ func SelectContainerWithInfo(ctx context.Context, allSelections []ContainerSelec
 	}
 
 	// Создаем handler для правой панели
-	handler := ui.NewYAMLPreviewHandler(items)
+	var handler ui.RightPanelHandler = ui.NewYAMLPreviewHandler(items)
 
 	// Конфигурация окна
 	config := ui.WindowConfig{

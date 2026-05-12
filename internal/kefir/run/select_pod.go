@@ -20,7 +20,7 @@ func SelectPod(ctx context.Context, pods []corev1.Pod) (*corev1.Pod, error) {
 	}
 
 	// Создаем handler для правой панели (YAML preview)
-	handler := ui.NewYAMLPreviewHandler(items)
+	var handler ui.RightPanelHandler = ui.NewYAMLPreviewHandler(items)
 
 	// Создаем имена для левой панели
 	names := make([]ui.RightPanelTitledElem, len(pods))
