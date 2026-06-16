@@ -198,7 +198,9 @@ func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 	rightPanelChangedChan := w.rightHandler.Watch(ctx)
 	go func() {
 		for range rightPanelChangedChan {
-			w.FillLeftList()
+			w.app.QueueUpdateDraw(func() {
+				w.FillLeftList()
+			})
 		}
 	}()
 
@@ -218,7 +220,6 @@ func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 		AddItem(instructionsView, 1, 0, false) // Подвал
 
 	// Настраиваем цвета
-	// w.app.SetBackgroundColor(ColorBackground)
 	mainFlex.SetBackgroundColor(ColorBackground)
 	w.leftFrame.SetBorderColor(ColorActive)     // Левая панель активна изначально
 	w.rightFrame.SetBorderColor(ColorBorderDim) // Правая панель неактивна
