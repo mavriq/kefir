@@ -14,6 +14,11 @@ type Broadcaster[T any] interface {
 	SubscribeWait(ctx context.Context, buffer int, timeout time.Duration) <-chan T
 	// Strict — блокировать до победного (или отмены контекста)
 	SubscribeStrict(ctx context.Context, buffer int) <-chan T
+
+	// Публикация данных для всех подписчиков
+	Publish(val T)
+
+	Close()
 }
 
 // broadcaster — скрытая реализация интерфейса.
@@ -21,20 +26,33 @@ type broadcaster[T any] struct {
 	mu   sync.RWMutex
 	subs map[chan T]time.Duration // 0 - BestEffort, -1 - Strict, >0 - Timeout
 
-	source <-chan T
+	source chan T
+}
+
+func NewBroadcaster[T any]() Broadcaster[T] {
+	return NewBroadcasterWithLen[T](0)
 }
 
 // NewBroadcaster создает и запускает новый транслятор событий.
-func NewBroadcaster[T any](source <-chan T) Broadcaster[T] {
+func NewBroadcasterWithLen[T any](bufLen int) Broadcaster[T] {
 	b := &broadcaster[T]{
 		subs:   make(map[chan T]time.Duration),
-		source: source,
+		source: make(chan T, bufLen),
 	}
+
 	go b.run()
 	return b
 }
 
 func (b *broadcaster[T]) run() {
+	defer func() {
+		b.mu.Lock()
+		for ch := range b.subs {
+			close(ch)
+		}
+		b.mu.Unlock()
+	}()
+
 	for val := range b.source {
 		b.mu.RLock()
 		var wg sync.WaitGroup
@@ -67,12 +85,6 @@ func (b *broadcaster[T]) run() {
 		wg.Wait()
 		b.mu.RUnlock()
 	}
-
-	b.mu.Lock()
-	for ch := range b.subs {
-		close(ch)
-	}
-	b.mu.Unlock()
 }
 
 func (b *broadcaster[T]) SubscribeWait(ctx context.Context, buffer int, timeout time.Duration) <-chan T {
@@ -98,4 +110,12 @@ func (b *broadcaster[T]) Subscribe(ctx context.Context, buffer int) <-chan T {
 
 func (b *broadcaster[T]) SubscribeStrict(ctx context.Context, buffer int) <-chan T {
 	return b.SubscribeWait(ctx, buffer, time.Duration(-1*time.Second))
+}
+
+func (b *broadcaster[T]) Publish(val T) {
+	b.source <- val
+}
+
+func (b *broadcaster[T]) Close() {
+	close(b.source)
 }

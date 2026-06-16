@@ -88,18 +88,15 @@ type MountOptionsHandler struct {
 	app *tview.Application
 	// onChanged func(idx int, updatedTitle string) // колбэк для уведомления левой панели
 
-	watchChan        chan struct{}
 	watchBroadcaster snippet.Broadcaster[struct{}]
 }
 
 func NewMountOptionsHandler(options []MountOption) *MountOptionsHandler {
-	h := &MountOptionsHandler{
-		options:    options,
-		currentIdx: -1,
-		watchChan:  make(chan struct{}, 1),
+	return &MountOptionsHandler{
+		options:          options,
+		currentIdx:       -1,
+		watchBroadcaster: snippet.NewBroadcaster[struct{}](),
 	}
-	h.watchBroadcaster = snippet.NewBroadcaster(h.watchChan)
-	return h
 }
 
 func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
@@ -109,10 +106,13 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 		SetFieldWidth(40).
 		SetChangedFunc(func(text string) {
 			if h.currentIdx >= 0 && h.currentIdx < len(h.options) {
+				// обновляем опцию
 				h.options[h.currentIdx].SetMountPath(text)
+
+				// Обновляем только описание и заголовок, не трогая фокус
 				h.updateDescription()
 				// h.notifyLeftPanelUpdate()
-				h.watchChan <- struct{}{}
+				h.watchBroadcaster.Publish(struct{}{})
 			}
 		})
 
@@ -132,7 +132,7 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 				h.options[h.currentIdx].SetReadOnly(checked)
 				h.updateDescription()
 				// h.notifyLeftPanelUpdate()
-				h.watchChan <- struct{}{}
+				h.watchBroadcaster.Publish(struct{}{})
 			}
 		})
 

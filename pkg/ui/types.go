@@ -68,5 +68,5 @@ type SelectionResult struct {
 
 // элемент правого списка, умеющий интерактивно изменять свой заголовок
 type RightPanelTitledElem interface {
-	Title() string // Название, коротко описывающее Volume
+	Title() string // Название, коротко описывающее выбранный элемент с учетом текущих его опций
 }
