@@ -172,8 +172,7 @@ func (h *MountOptionsHandler) CreatePanel() tview.Primitive {
 	// Обертываем в Frame
 	frame := tview.NewFrame(h.formFlex).
 		SetBorders(1, 1, 0, 0, 2, 2)
-	frame.SetBorder(true).
-		SetTitle(" Mount Configuration ").
+	frame.SetBorder(false).
 		SetTitleAlign(tview.AlignLeft)
 
 	return frame

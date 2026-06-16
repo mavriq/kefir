@@ -40,14 +40,14 @@ func NewTwoPanelWindow[T RightPanelTitledElem](config WindowConfig, rawItems []T
 	app := tview.NewApplication()
 
 	// Создаем левую панель
-	leftList, leftFrame := CreateListPanel("Items")
+	leftList, leftFrame := CreateListPanel(config.Title)
 
 	// Создаем правую панель
 	rightPanel := handler.CreatePanel()
 	rightFrame := tview.NewFrame(rightPanel).
 		SetBorders(1, 1, 0, 0, 2, 2)
 	rightFrame.SetBorder(true).
-		SetTitle(" Details ").
+		// SetTitle(" Details ").
 		SetTitleAlign(tview.AlignLeft)
 
 	window := &TwoPanelWindow{
@@ -224,7 +224,6 @@ func (w *TwoPanelWindow) Run(ctx context.Context) (interface{}, error) {
 	w.leftFrame.SetBorderColor(ColorActive)     // Левая панель активна изначально
 	w.rightFrame.SetBorderColor(ColorBorderDim) // Правая панель неактивна
 
-	// Запускаем в горутине
 	go func() {
 		if err := w.app.SetRoot(mainFlex, true).EnableMouse(false).Run(); err != nil {
 			w.errorChan <- fmt.Errorf("ui error: %w", err)
