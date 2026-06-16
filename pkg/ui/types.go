@@ -51,13 +51,12 @@ type RightPanelHandler interface {
 // MountOption - интерфейс для ConfigureMounts
 type MountOption interface {
 	RightPanelTitledElem
-	// Title() string             // Название, коротко описывающее Volume
-	Description() string       // Детальное описание Volume
-	GetMountPath() string      // Вернуть точку монтирования для этого Volume в создаваемом эфемерном контейнере
-	SetMountPath(path string)  // Задать точку монтирования для этого Volume в создаваемом эфемерном контейнере
-	GetReadOnly() bool         // Вернуть режим монтирования RO/RW
-	SetReadOnly(readOnly bool) // Задать режим монтирования RO/RW
-	GetName() string           // имя Volume (настраивается при создании объекта. Не может быть перенастроено)
+	Description() string  // Детальное описание Volume
+	GetMountPath() string // Вернуть точку монтирования для этого Volume в создаваемом эфемерном контейнере
+	SetMountPath(string)  // Задать точку монтирования для этого Volume в создаваемом эфемерном контейнере
+	GetReadOnly() bool    // Вернуть режим монтирования RO/RW
+	SetReadOnly(bool)     // Задать режим монтирования RO/RW
+	GetName() string      // имя Volume (настраивается при создании объекта. Не может быть перенастроено)
 }
 
 // SelectionResult - результат выбора для окон 1 и 2
